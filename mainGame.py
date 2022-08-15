@@ -15,7 +15,28 @@ def paddleGen(spot):
     paddleCoords.append(finalCoords)
     return paddleCoords
 
-## variable initialization
+## class initialization
+
+
+class Collide():
+    _registry = []
+    # x, y, width, height, whether or not the object is being used
+    def __init__(self, objX, objY, objWid, objHei, bool, name):
+        self.objX = objX
+        self.objY = objY
+        self.objWid = objWid
+        self.objHei = objHei
+        self.objX = objX
+        self.bool = bool
+        self._registry.append(name)
+        
+
+class Wall(Collide):
+    thickness = 1
+    wallOn = True
+
+
+
 
 #screen parameters
 
@@ -30,6 +51,15 @@ dt = 10
 
 pygame.event.get()
 keys = pygame.key.get_pressed()
+
+
+
+ballVX = 5
+ballVY = 1
+
+
+
+
 
 while (keys[pygame.K_q] != True):
     pygame.event.get()
@@ -86,9 +116,23 @@ while (keys[pygame.K_q] != True):
 
 #game variables
 
+## walls
+
+    wallOne = Wall(tableStartX, tableStartY, Wall.thickness, tableHeight, Wall.wallOn, 'wallOne')
+    wallTwo = Wall(tableStartX, tableStartY, tableWidth, Wall.thickness, Wall.wallOn, 'wallTwo')
+    wallThree = Wall(tableStartX + tableWidth, tableStartY, Wall.thickness, tableHeight, Wall.wallOn, 'wallThree')
+    wallFour = Wall(tableStartX, tableStartY + tableHeight, tableWidth, Wall.thickness, Wall.wallOn, 'wallFour')
+
+    wallList = [wallOne, wallTwo, wallThree, wallFour]
+
+
+
+
+
+
 #ball variables
-    ballX = screenWidth /2
-    ballY = screenHeight /2
+    startBallX = screenWidth /2
+    startBallY = screenHeight /2
     #size of ball, derived from A = k(pi)r^2, where A is the area of the table, and x = k(pi), resulting in: sqrt(l * w / x), x is chosen arbitrarily
     #A = k(pi)r^2 is found as: 1/k = (pi)r^2/A, relating the ball's area to the table's area
     ballRad = sqrt((tableHeight * tableWidth) / 500)
@@ -122,6 +166,30 @@ while (keys[pygame.K_q] != True):
         paddleTres = True
     if keys[pygame.K_f]:
         paddleQuatro = True
+    if keys[pygame.K_r]:
+        ballX = startBallX
+        ballY = startBallY
+
+
+# ball bouncing of colliders
+
+    if 'ballX' in locals() and 'ballY' in locals():
+        ballX = ballX + ballVX
+        ballY = ballY + ballVY
+    else:
+        ballX = startBallX
+        ballY = startBallY
+
+
+    for i in Collide._registry:
+        if ballX <= eval(i).objX + ballRad and ballX >= eval(i).objX - ballRad:
+            ballVX = -ballVX
+        if ballY <= eval(i).objY + ballRad and ballY >= eval(i).objY - ballRad:
+            ballVY = -ballVY
+
+
+
+
 
 
 
