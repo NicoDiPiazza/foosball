@@ -7,10 +7,17 @@ pygame.init()
 
 # User paddle Coordinate generation
 
-def paddleGen(spot):   
+def paddleGen(spot):
+    
     paddleCoords = [((paddleWidth * spot) + tableStartX, tableStartY), ((paddleWidth * ( spot + 1)) + tableStartX, tableStartY)]
+    if tableVert:
+        paddleCoords = [(tableStartX, (paddleHeight * spot) + tableStartY), (tableStartX, (paddleHeight * ( spot + 1)) + tableStartY)]
     bottomCoords =((paddleWidth * (spot + 1)) + tableStartX, tableStartY + tableHeight)
+    if tableVert:
+        bottomCoords =(tableStartX + tableWidth, (paddleHeight * (spot + 1)) + tableStartY)
     finalCoords = ((paddleWidth * spot) + tableStartX, tableStartY + tableHeight)
+    if tableVert:
+        finalCoords = (tableStartX + tableWidth, (paddleHeight * spot) + tableStartY)
     paddleCoords.append(bottomCoords)
     paddleCoords.append(finalCoords)
     return paddleCoords
@@ -46,12 +53,12 @@ screen_size = [ screenWidth, screenHeight]
 
 screen = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
 
-dt = 10
-
 
 pygame.event.get()
 keys = pygame.key.get_pressed()
 
+
+dt = 10
 
 
 ballVX = 5
@@ -72,6 +79,8 @@ while (keys[pygame.K_q] != True):
 
 
 ## Calculations
+
+    Collide._registry = []
 
 
 # Table Calculations
@@ -123,7 +132,6 @@ while (keys[pygame.K_q] != True):
     wallThree = Wall(tableStartX + tableWidth, tableStartY, Wall.thickness, tableHeight, Wall.wallOn, 'wallThree')
     wallFour = Wall(tableStartX, tableStartY + tableHeight, tableWidth, Wall.thickness, Wall.wallOn, 'wallFour')
 
-    wallList = [wallOne, wallTwo, wallThree, wallFour]
 
 
 
@@ -141,17 +149,17 @@ while (keys[pygame.K_q] != True):
 # paddle variables
     Npaddles = 8
     UpaddleColor = (100, 100, 100)
-    paddleWidth = tableWidth / 8
+    paddleWidth = tableWidth / Npaddles
     paddleHeight = tableHeight
 
-    paddleUno = False
-    paddleDos = False
-    paddleTres = False
-    paddleQuatro = False
+    paddleUnoOn = False
+    paddleDosOn = False
+    paddleTresOn = False
+    paddleQuatroOn = False
 
     if (tableVert):
         paddleWidth = tableWidth
-        paddleHeight = tableHeight / 8
+        paddleHeight = tableHeight / Npaddles
 
 
 
@@ -159,16 +167,27 @@ while (keys[pygame.K_q] != True):
 ## Game Logic
 
     if keys[pygame.K_a]:
-        paddleUno = True
+        paddleUnoOn = True
     if keys[pygame.K_s]:
-        paddleDos = True
+        paddleDosOn = True
     if keys[pygame.K_d]:
-        paddleTres = True
+        paddleTresOn = True
     if keys[pygame.K_f]:
-        paddleQuatro = True
+        paddleQuatroOn = True
     if keys[pygame.K_r]:
         ballX = startBallX
         ballY = startBallY
+
+
+    drawPaddleUno = paddleGen(0)
+    paddleUno = Collide(drawPaddleUno[0][0], drawPaddleUno[0][1], paddleWidth, paddleHeight, paddleUnoOn, 'paddleUno')
+    drawPaddleDos = paddleGen(1)
+    paddleDos = Collide(drawPaddleDos[0][0], drawPaddleDos[0][1], paddleWidth, paddleHeight, paddleDosOn, 'paddleDos')
+    drawPaddleTres = paddleGen(3)
+    paddleTres = Collide(drawPaddleTres[0][0], drawPaddleTres[0][1], paddleWidth, paddleHeight, paddleTresOn, 'paddleTres')
+    drawPaddleQuatro = paddleGen(5)
+    paddleQuatro = Collide(drawPaddleQuatro[0][0], drawPaddleQuatro[0][1], paddleWidth, paddleHeight, paddleQuatroOn, 'paddleQuatro')
+
 
 
 # ball bouncing of colliders
@@ -181,11 +200,16 @@ while (keys[pygame.K_q] != True):
         ballY = startBallY
 
 
+    canFlip = True
+
+
+
     for i in Collide._registry:
-        if ballX <= eval(i).objX + ballRad and ballX >= eval(i).objX - ballRad:
+        if ballX <= eval(i).objX + eval(i).objWid + ballRad and ballX >= eval(i).objX - ballRad and eval(i).bool:
             ballVX = -ballVX
-        if ballY <= eval(i).objY + ballRad and ballY >= eval(i).objY - ballRad:
+        if ballY <= eval(i).objY + ballRad and ballY >= eval(i).objY - ballRad and eval(i).bool and canFlip:
             ballVY = -ballVY
+            canFlip = False
 
 
 
@@ -195,24 +219,18 @@ while (keys[pygame.K_q] != True):
 
 
 ## Displays
-
     pygame.draw.polygon(screen, (0, 250, 0), tableCoords, 0)
     pygame.draw.circle(screen, (250, 250, 250), [ballX, ballY], ballRad, 0)
 
 
-    if(paddleUno):
-        drawPaddle = paddleGen(0)
-        pygame.draw.polygon(screen, UpaddleColor, drawPaddle, 0)
-    if(paddleDos):
-        drawPaddle = paddleGen(1)
-        pygame.draw.polygon(screen, UpaddleColor, drawPaddle, 0)
-    if(paddleTres):
-        drawPaddle = paddleGen(3)
-        pygame.draw.polygon(screen, UpaddleColor, drawPaddle, 0)
-    if(paddleQuatro):
-        drawPaddle = paddleGen(5)
-        pygame.draw.polygon(screen, UpaddleColor, drawPaddle, 0)
+    if(paddleUnoOn):
+        pygame.draw.polygon(screen, UpaddleColor, drawPaddleUno, 0)
+    if(paddleDosOn):
+        pygame.draw.polygon(screen, UpaddleColor, drawPaddleDos, 0)
+    if(paddleTresOn):
+        pygame.draw.polygon(screen, UpaddleColor, drawPaddleTres, 0)
+    if(paddleQuatroOn):
+        pygame.draw.polygon(screen, UpaddleColor, drawPaddleQuatro, 0)
 
-
-
+    pygame.time.delay(dt)
     pygame.display.update()
