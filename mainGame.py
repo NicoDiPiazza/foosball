@@ -35,8 +35,8 @@ class Collide():
         self.objHei = objHei
         self.objX = objX
         self.bool = bool
+        self.type = type
         self._registry.append(name)
-        
 
 class Wall(Collide):
     thickness = 1
@@ -61,8 +61,17 @@ keys = pygame.key.get_pressed()
 dt = 10
 
 
-ballVX = 5
-ballVY = 1
+ballVX = 0
+ballVY = 0
+
+ballSlowRate = 0.6
+
+serveSpeed = -1
+
+paddleUnoFresh = 0
+paddleDosFresh = 0
+paddleTresFresh = 0
+paddleQuatroFresh = 0
 
 
 
@@ -157,6 +166,9 @@ while (keys[pygame.K_q] != True):
     paddleTresOn = False
     paddleQuatroOn = False
 
+
+
+
     if (tableVert):
         paddleWidth = tableWidth
         paddleHeight = tableHeight / Npaddles
@@ -168,15 +180,29 @@ while (keys[pygame.K_q] != True):
 
     if keys[pygame.K_a]:
         paddleUnoOn = True
+        paddleUnoFresh = paddleUnoFresh + 1
+    else:
+        paddleUnoFresh = 0
     if keys[pygame.K_s]:
         paddleDosOn = True
+        paddleDosFresh = paddleDosFresh + 1
+    else:
+        paddleDosFresh = 0
     if keys[pygame.K_d]:
         paddleTresOn = True
+        paddleTresFresh = paddleTresFresh + 1
+    else:
+        paddleTresFresh = 0
     if keys[pygame.K_f]:
         paddleQuatroOn = True
+        paddleQuatroFresh = paddleQuatroFresh + 1
+    else:
+        paddleQuatroFresh = 0
     if keys[pygame.K_r]:
         ballX = startBallX
-        ballY = startBallY
+        ballY = tableHeight - ballRad
+        ballVX = 0
+        ballVY = serveSpeed
 
 
     drawPaddleUno = paddleGen(0)
@@ -199,17 +225,55 @@ while (keys[pygame.K_q] != True):
         ballX = startBallX
         ballY = startBallY
 
-
-    canFlip = True
+    canFlipX = True
+    canFlipY = True
 
 
 
     for i in Collide._registry:
-        if ballX <= eval(i).objX + eval(i).objWid + ballRad and ballX >= eval(i).objX - ballRad and eval(i).bool:
-            ballVX = -ballVX
-        if ballY <= eval(i).objY + ballRad and ballY >= eval(i).objY - ballRad and eval(i).bool and canFlip:
+        if ballX > eval(i).objX-ballRad and ballX <eval(i).objX+ballRad+eval(i).objWid and ballY > eval(i).objY and ballY < eval(i).objY+eval(i).objHei and eval(i).bool and canFlipX:
+            if ballX > eval(i).objX + eval(i).objWid/2:
+                ballX = eval(i).objX + eval(i).objWid + ballRad
+            else:
+                ballX = eval(i).objX - ballRad
+            
+            
+            ballVX = - ballVX
+            canFlipX = False
+            ballVX = ballVX * ballSlowRate
+            if ballVX >= 0:
+                if i == 'paddleUno' and paddleUnoFresh < 4:
+                    ballVX = ballVX + 5-paddleUnoFresh
+                if i == 'paddleDos' and paddleDosFresh < 4:
+                    ballVX = ballVX + 5 - paddleDosFresh
+                if i == 'paddleTres' and paddleTresFresh < 4:
+                    ballVX = ballVX + 5 - paddleTresFresh
+                if i == 'paddleQuatro' and paddleQuatroFresh < 4:
+                    ballVX = ballVX + 5 - paddleQuatroFresh
+            if ballVX < 0:
+                if i == 'paddleUno' and paddleUnoFresh < 4:
+                    ballVX = ballVX - 5-paddleUnoFresh
+                if i == 'paddleDos' and paddleDosFresh < 4:
+                    ballVX = ballVX - 5 - paddleDosFresh
+                if i == 'paddleTres' and paddleTresFresh < 4:
+                    ballVX = ballVX - 5 - paddleTresFresh
+                if i == 'paddleQuatro' and paddleQuatroFresh < 4:
+                    ballVX = ballVX - 5 - paddleQuatroFresh
+            print(i, ballVX, paddleUnoFresh)
+
+        if ballY < eval(i).objY + ballRad and ballY > eval(i).objY - ballRad and eval(i).bool and canFlipY:
+            if ballY > screenHeight/2:
+                ballY = eval(i).objY - ballRad
+            else:
+                ballY = eval(i).objY + ballRad
+
+
             ballVY = -ballVY
-            canFlip = False
+            canFlipY = False
+            ballVY = ballVY * ballSlowRate
+            
+
+
 
 
 
